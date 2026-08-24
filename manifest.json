@@ -1,0 +1,11 @@
+{
+  "name": "S3M Tokens → SCSS",
+  "description": "Экспортирует все наборы токенов (Global/*, Theme/* и любые другие имеющиеся Sets) в SCSS-файлы, сохраняя ссылки между токенами вместо resolved-значений.",
+  "version": 2,
+  "code": "plugin.js",
+  "icon": "icon.png",
+  "permissions": [
+    "library:read",
+    "allow:downloads"
+  ]
+}
