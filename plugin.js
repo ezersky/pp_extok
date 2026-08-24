@@ -1,11 +1,10 @@
 /**
- * S3M Tokens → SCSS — plugin.js (sandbox context)
- *
- * Работает только с `penpot.library.local.tokens`. Никаких изменений в файл не вносит —
- * только читает все наборы токенов (Global/*, Theme/* и любые другие, какие есть в файле)
- * и пересылает их в интерфейс плагина (index.html/ui.js), где происходит генерация SCSS
- * и скачивание. Вся генерация/скачивание — в iframe, т.к. там доступны DOM/Blob API,
- * которых нет в этом sandbox-контексте.
+ * Tokens in SCSS — plugin.js (sandbox context)
+ * Works only with `penpot.library.local.tokens`. It does not make any changes to the file —
+ * it only reads all sets of tokens (Global/*, Theme/* and any others that are in the file)
+ * and forwards them to the plugin interface (index.html/ui.js), where SCSS generation
+ * and downloading take place. All generation/downloading is done in an iframe, as DOM/Blob APIs are available there,
+ * which are not available in this sandbox context.
  */
 
 penpot.ui.open("S3M Tokens → SCSS", "index.html", { width: 420, height: 640 });
