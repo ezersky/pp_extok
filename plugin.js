@@ -7,7 +7,7 @@
  * which are not available in this sandbox context.
  */
 
-penpot.ui.open("S3M Tokens → SCSS", "index.html", { width: 420, height: 640 });
+penpot.ui.open("Tokens to SCSS", "index.html", { width: 420, height: 640 });
 
 function serializeTokenCatalog() {
   const catalog = penpot.library.local.tokens;
