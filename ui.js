@@ -1,20 +1,21 @@
 /**
- * S3M Tokens → SCSS — ui.js (iframe context, no direct `penpot` access)
+ * Tokens to SCSS — ui.js (iframe context, no direct `penpot` access)
  *
- * Универсальный генератор: для КАЖДОГО набора токенов (TokenSet), какой бы он ни назывался,
- * собирает файл `_<slug>.scss`. Ссылки токенов друг на друга ("{token.name}") превращаются
- * в ссылки на SCSS-переменные ($slug-в-другом-файле), а не разворачиваются в resolved-значения —
- * это и есть "сохранение наследования". Если токен ссылается на токен ИЗ ДРУГОГО набора,
- * в файл добавляется `@use "<тот-набор>" as *;`.
+ * Universal generator: for EVERY token set (TokenSet), no matter what it’s called,
+ * it generates the `_<slug>.scss` file. Token references to each other (“{token.name}”) are turned
+ * into references to SCSS variables ($slug-in-another-file), rather than being expanded into resolved values —
+ * this is what “preserving inheritance” means.
+ * If a token references a token FROM ANOTHER set,
+ * the file adds `@use "<that-set>" as *;`.
  *
- * Составные типы токенов:
+ * Compound token types:
  *  - typography → SCSS map ($<set>-typography) + @mixin <set>-typography($name)
- *  - shadow     → обычная $переменная со списком слоёв (box-shadow поддерживает несколько через запятую)
- * Остальные типы — скалярные $переменные (с px там, где это единицы измерения).
+ *  - shadow     → a regular $variable with a list of layers (box-shadow supports multiple values separated by commas)
+ * The remaining types are scalar $variables (with px where they are units of measurement).
  */
 
 // ---------------------------------------------------------------------------
-// Утилиты
+// Utilites
 // ---------------------------------------------------------------------------
 
 function slug(name) {
@@ -52,7 +53,7 @@ function scanValueForRefs(value, refs) {
 }
 
 // ---------------------------------------------------------------------------
-// Разрешение ссылок между наборами + топологический порядок внутри набора
+// Resolution of references between sets + topological order within a set
 // ---------------------------------------------------------------------------
 
 function buildBySet(setsData) {
@@ -104,8 +105,8 @@ function topoSortTokens(tokens, sameSetDepsMap) {
 }
 
 // ---------------------------------------------------------------------------
-// Промоция "number"-токенов (например, base-module), используемых как px-множитель
-// в spacing/borderRadius/etc — им тоже нужен px, иначе `$base-module * 3` не даст px
+// Promotion of “number” tokens (e.g., base-module) used as a px multiplier
+// in spacing/borderRadius/etc — they also need px, otherwise `$base-module * 3` won’t give px
 // ---------------------------------------------------------------------------
 
 function computePromotedPxNumbers(setsData) {
@@ -126,7 +127,7 @@ function computePromotedPxNumbers(setsData) {
 }
 
 // ---------------------------------------------------------------------------
-// Форматирование значений по типу токена
+// Formatting values by token type
 // ---------------------------------------------------------------------------
 
 function formatScalarValue(token, promotedPxNumbers) {
@@ -138,8 +139,8 @@ function formatScalarValue(token, promotedPxNumbers) {
   if (type === "fontFamilies" && Array.isArray(value)) {
     return value.map((f) => `"${f}"`).join(", ");
   }
-  // ВАЖНО: для цветов используем сырое value, а не resolvedValue — Penpot теряет альфа-канал
-  // в resolvedValue для rgba()-литералов (напр. "rgba(38,38,38,0.28)" -> "#262626").
+  // IMPORTANT: for colors, use the raw value, not resolvedValue — Penpot loses the alpha channel
+  // in resolvedValue for rgba() literals (e.g., "rgba(38,38,38,0.28)" -> "#262626").
   if (type === "color") {
     return typeof value === "string" ? value : `${resolvedValue}`;
   }
@@ -194,7 +195,7 @@ function formatTypographyEntry(token) {
 }
 
 // ---------------------------------------------------------------------------
-// Генерация одного файла на набор токенов
+// Generating one file per set of tokens
 // ---------------------------------------------------------------------------
 
 function generateSetFile(set, bySet, promotedPxNumbers) {
@@ -282,7 +283,7 @@ function generateAll(setsData) {
 }
 
 // ---------------------------------------------------------------------------
-// Минимальный ZIP-writer (STORED, без сжатия) — без внешних зависимостей
+// Minimal ZIP writer (STORED, no compression) — no external dependencies.
 // ---------------------------------------------------------------------------
 
 function crc32(buf) {
@@ -372,10 +373,10 @@ function buildZip(files) {
 }
 
 // ---------------------------------------------------------------------------
-// UI-обвязка: сообщения ↔ sandbox, рендер списка файлов, скачивание
+// Connection with the user interface: messages ↔ sandbox, file list renderer, loading
 // ---------------------------------------------------------------------------
-// Guarded so this file's pure logic (generateAll, buildZip, etc.) can also be
-// required/tested in a plain Node.js context without a DOM (see test/ folder).
+// Protected so that the pure logic of this file (generateAll, buildZip, etc.) can be
+// used and tested in a regular Node.js context without DOM (see the test/ folder)
 if (typeof document !== "undefined") {
 
 let generatedFiles = [];
