@@ -1,13 +1,16 @@
 /**
- * Tokens in SCSS — plugin.js (sandbox context)
- * Works only with `penpot.library.local.tokens`. It does not make any changes to the file —
- * it only reads all sets of tokens (Global/*, Theme/* and any others that are in the file)
- * and forwards them to the plugin interface (index.html/ui.js), where SCSS generation
- * and downloading take place. All generation/downloading is done in an iframe, as DOM/Blob APIs are available there,
- * which are not available in this sandbox context.
+ * Tokens to SCSS — plugin.js (sandbox context)
+ *
+ * Работает только с `penpot.library.local.tokens`. Никаких изменений в файл не вносит —
+ * только читает все наборы токенов (Global/*, Theme/* и любые другие, какие есть в файле)
+ * и пересылает их в интерфейс плагина (index.html/ui.js), где происходит генерация SCSS
+ * и скачивание. Вся генерация/скачивание — в iframe, т.к. там доступны DOM/Blob API,
+ * которых нет в этом sandbox-контексте.
  */
 
-penpot.ui.open("Tokens to SCSS", "index.html", { width: 420, height: 640 });
+console.log("[Tokens to SCSS] plugin.js loaded");
+
+penpot.ui.open("Tokens to SCSS", "index.html", { width: 380, height: 560 });
 
 function serializeTokenCatalog() {
   const catalog = penpot.library.local.tokens;
@@ -26,12 +29,19 @@ function serializeTokenCatalog() {
 }
 
 penpot.ui.onMessage((message) => {
-  if (message && message.type === "request-tokens") {
-    try {
-      const data = serializeTokenCatalog();
-      penpot.ui.sendMessage({ type: "tokens-data", sets: data.sets });
-    } catch (err) {
-      penpot.ui.sendMessage({ type: "tokens-error", message: String(err && err.message || err) });
-    }
+  console.log("[Tokens to SCSS] plugin.js received message:", message);
+
+  if (!message || message.type !== "request-tokens") return;
+
+  try {
+    const data = serializeTokenCatalog();
+    console.log("[Tokens to SCSS] sending", data.sets.length, "token sets to UI");
+    penpot.ui.sendMessage({ type: "tokens-data", sets: data.sets });
+  } catch (err) {
+    console.error("[Tokens to SCSS] failed to read token catalog:", err);
+    penpot.ui.sendMessage({
+      type: "tokens-error",
+      message: String((err && err.message) || err),
+    });
   }
 });
