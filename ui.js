@@ -1,21 +1,20 @@
 /**
- * Tokens to SCSS — ui.js (iframe context, no direct `penpot` access)
+ * S3M Tokens → SCSS — ui.js (iframe context, no direct `penpot` access)
  *
- * Universal generator: for EVERY token set (TokenSet), no matter what it’s called,
- * it generates the `_<slug>.scss` file. Token references to each other (“{token.name}”) are turned
- * into references to SCSS variables ($slug-in-another-file), rather than being expanded into resolved values —
- * this is what “preserving inheritance” means.
- * If a token references a token FROM ANOTHER set,
- * the file adds `@use "<that-set>" as *;`.
+ * Универсальный генератор: для КАЖДОГО набора токенов (TokenSet), какой бы он ни назывался,
+ * собирает файл `_<slug>.scss`. Ссылки токенов друг на друга ("{token.name}") превращаются
+ * в ссылки на SCSS-переменные ($slug-в-другом-файле), а не разворачиваются в resolved-значения —
+ * это и есть "сохранение наследования". Если токен ссылается на токен ИЗ ДРУГОГО набора,
+ * в файл добавляется `@use "<тот-набор>" as *;`.
  *
- * Compound token types:
+ * Составные типы токенов:
  *  - typography → SCSS map ($<set>-typography) + @mixin <set>-typography($name)
- *  - shadow     → a regular $variable with a list of layers (box-shadow supports multiple values separated by commas)
- * The remaining types are scalar $variables (with px where they are units of measurement).
+ *  - shadow     → обычная $переменная со списком слоёв (box-shadow поддерживает несколько через запятую)
+ * Остальные типы — скалярные $переменные (с px там, где это единицы измерения).
  */
 
 // ---------------------------------------------------------------------------
-// Utilites
+// Утилиты
 // ---------------------------------------------------------------------------
 
 function slug(name) {
@@ -53,7 +52,7 @@ function scanValueForRefs(value, refs) {
 }
 
 // ---------------------------------------------------------------------------
-// Resolution of references between sets + topological order within a set
+// Разрешение ссылок между наборами + топологический порядок внутри набора
 // ---------------------------------------------------------------------------
 
 function buildBySet(setsData) {
@@ -105,8 +104,8 @@ function topoSortTokens(tokens, sameSetDepsMap) {
 }
 
 // ---------------------------------------------------------------------------
-// Promotion of “number” tokens (e.g., base-module) used as a px multiplier
-// in spacing/borderRadius/etc — they also need px, otherwise `$base-module * 3` won’t give px
+// Промоция "number"-токенов (например, base-module), используемых как px-множитель
+// в spacing/borderRadius/etc — им тоже нужен px, иначе `$base-module * 3` не даст px
 // ---------------------------------------------------------------------------
 
 function computePromotedPxNumbers(setsData) {
@@ -127,7 +126,7 @@ function computePromotedPxNumbers(setsData) {
 }
 
 // ---------------------------------------------------------------------------
-// Formatting values by token type
+// Форматирование значений по типу токена
 // ---------------------------------------------------------------------------
 
 function formatScalarValue(token, promotedPxNumbers) {
@@ -139,8 +138,8 @@ function formatScalarValue(token, promotedPxNumbers) {
   if (type === "fontFamilies" && Array.isArray(value)) {
     return value.map((f) => `"${f}"`).join(", ");
   }
-  // IMPORTANT: for colors, use the raw value, not resolvedValue — Penpot loses the alpha channel
-  // in resolvedValue for rgba() literals (e.g., "rgba(38,38,38,0.28)" -> "#262626").
+  // ВАЖНО: для цветов используем сырое value, а не resolvedValue — Penpot теряет альфа-канал
+  // в resolvedValue для rgba()-литералов (напр. "rgba(38,38,38,0.28)" -> "#262626").
   if (type === "color") {
     return typeof value === "string" ? value : `${resolvedValue}`;
   }
@@ -195,7 +194,7 @@ function formatTypographyEntry(token) {
 }
 
 // ---------------------------------------------------------------------------
-// Generating one file per set of tokens
+// Генерация одного файла на набор токенов
 // ---------------------------------------------------------------------------
 
 function generateSetFile(set, bySet, promotedPxNumbers) {
@@ -213,7 +212,7 @@ function generateSetFile(set, bySet, promotedPxNumbers) {
 
   const lines = [];
   lines.push("// ============================================================================");
-  lines.push(`// Сгенерировано плагином "Tokens to SCSS" — набор токенов: ${set.name}`);
+  lines.push(`// Сгенерировано плагином "S3M Tokens → SCSS" — набор токенов: ${set.name}`);
   lines.push("// Ссылки между токенами сохранены как SCSS-переменные (наследование не разворачивается");
   lines.push("// в resolved-значения). Файл не редактировать вручную — пересоберите его плагином.");
   lines.push("// ============================================================================");
@@ -233,7 +232,7 @@ function generateSetFile(set, bySet, promotedPxNumbers) {
     }
     const varName = "$" + slug(t.name);
     if (seenVarNames.has(varName)) {
-      console.warn(`[Tokens to SCSS] Коллизия имён: несколько токенов в наборе "${set.name}" дают одинаковую SCSS-переменную ${varName}`);
+      console.warn(`[S3M Tokens → SCSS] Коллизия имён: несколько токенов в наборе "${set.name}" дают одинаковую SCSS-переменную ${varName}`);
     }
     seenVarNames.add(varName);
 
@@ -283,7 +282,7 @@ function generateAll(setsData) {
 }
 
 // ---------------------------------------------------------------------------
-// Minimal ZIP writer (STORED, no compression) — no external dependencies.
+// Минимальный ZIP-writer (STORED, без сжатия) — без внешних зависимостей
 // ---------------------------------------------------------------------------
 
 function crc32(buf) {
@@ -373,22 +372,40 @@ function buildZip(files) {
 }
 
 // ---------------------------------------------------------------------------
-// Connection with the user interface: messages ↔ sandbox, file list renderer, loading
+// UI-обвязка: сообщения ↔ sandbox, индикаторы загрузки, рендер списка файлов, скачивание
 // ---------------------------------------------------------------------------
-// Protected so that the pure logic of this file (generateAll, buildZip, etc.) can be
-// used and tested in a regular Node.js context without DOM (see the test/ folder)
+// Guarded so this file's pure logic (generateAll, buildZip, etc.) can also be
+// required/tested in a plain Node.js context without a DOM (see test/ folder).
 if (typeof document !== "undefined") {
 
+console.log("[Tokens to SCSS] ui.js loaded");
+
 let generatedFiles = [];
+let requestTimer = null;
+let retryCount = 0;
+const MAX_RETRIES = 2;
+const RESPONSE_TIMEOUT_MS = 3000;
 
 const statusEl = document.getElementById("status");
+const statusTextEl = document.getElementById("status-text");
 const filesEl = document.getElementById("files");
+const skeletonEl = document.getElementById("skeleton-list");
 const zipBtn = document.getElementById("zip-btn");
 const generateBtn = document.getElementById("generate-btn");
 
-function setStatus(text, isError) {
-  statusEl.textContent = text;
-  statusEl.classList.toggle("error", !!isError);
+function setStatus(text, mode) {
+  // mode: "loading" | "success" | "error" | undefined (idle)
+  statusTextEl.textContent = text;
+  statusEl.classList.toggle("is-loading", mode === "loading");
+  statusEl.classList.toggle("is-success", mode === "success");
+  statusEl.classList.toggle("is-error", mode === "error");
+}
+
+function setBusy(busy) {
+  generateBtn.disabled = busy;
+  generateBtn.classList.toggle("is-loading", busy);
+  skeletonEl.classList.toggle("is-visible", busy);
+  if (busy) filesEl.innerHTML = "";
 }
 
 function triggerDownload(filename, blobParts, mime) {
@@ -405,8 +422,9 @@ function triggerDownload(filename, blobParts, mime) {
 
 function renderFiles(files) {
   filesEl.innerHTML = "";
-  files.forEach((f) => {
+  files.forEach((f, i) => {
     const li = document.createElement("li");
+    li.style.animationDelay = `${i * 40}ms`;
 
     const meta = document.createElement("div");
     meta.className = "meta";
@@ -419,6 +437,8 @@ function renderFiles(files) {
     meta.append(nameEl, countEl);
 
     const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset.appearance = "secondary";
     btn.textContent = "Скачать";
     btn.addEventListener("click", () => triggerDownload(f.filename, [f.content], "text/x-scss"));
 
@@ -428,39 +448,73 @@ function renderFiles(files) {
   zipBtn.style.display = files.length ? "block" : "none";
 }
 
-generateBtn.addEventListener("click", () => {
-  setStatus("Запрашиваю токены из файла…");
-  generateBtn.disabled = true;
+function requestTokens() {
+  console.log("[Tokens to SCSS] requesting tokens from plugin.js (attempt", retryCount + 1, ")");
+  setBusy(true);
+  setStatus("Запрашиваю токены из файла…", "loading");
+
   window.parent.postMessage({ type: "request-tokens" }, "*");
+
+  clearTimeout(requestTimer);
+  requestTimer = setTimeout(() => {
+    if (retryCount < MAX_RETRIES) {
+      retryCount += 1;
+      console.warn("[Tokens to SCSS] no response yet, retrying…");
+      requestTokens();
+    } else {
+      setBusy(false);
+      setStatus(
+        "Не удалось получить токены от Penpot. Проверьте: 1) плагин установлен и открыт через " +
+          "публичный URL (не file://); 2) разрешение library:read выдано; 3) в файле есть хотя бы " +
+          "один набор токенов. Подробности — в консоли разработчика (F12).",
+        "error"
+      );
+    }
+  }, RESPONSE_TIMEOUT_MS);
+}
+
+generateBtn.addEventListener("click", () => {
+  retryCount = 0;
+  requestTokens();
 });
 
 zipBtn.addEventListener("click", () => {
   const zipBytes = buildZip(generatedFiles.map((f) => ({ name: f.filename, content: f.content })));
-  triggerDownload("tokens-scss.zip", [zipBytes], "application/zip");
+  triggerDownload("s3m-tokens-scss.zip", [zipBytes], "application/zip");
 });
 
 window.addEventListener("message", (event) => {
   const msg = event.data;
   if (!msg) return;
+  console.log("[Tokens to SCSS] ui.js received message:", msg);
 
   if (msg.type === "tokens-error") {
-    setStatus("Ошибка при чтении токенов: " + msg.message, true);
-    generateBtn.disabled = false;
+    clearTimeout(requestTimer);
+    setBusy(false);
+    setStatus("Ошибка при чтении токенов: " + msg.message, "error");
     return;
   }
   if (msg.type !== "tokens-data") return;
 
+  clearTimeout(requestTimer);
+
   try {
     generatedFiles = generateAll(msg.sets);
     renderFiles(generatedFiles);
-    setStatus(`Готово: ${generatedFiles.length} файлов из ${msg.sets.length} наборов токенов.`);
+    setBusy(false);
+    setStatus(`Готово: ${generatedFiles.length} файлов из ${msg.sets.length} наборов токенов.`, "success");
   } catch (err) {
-    setStatus("Ошибка генерации: " + (err && err.message ? err.message : err), true);
-    console.error(err);
-  } finally {
-    generateBtn.disabled = false;
+    console.error("[Tokens to SCSS] generation failed:", err);
+    setBusy(false);
+    setStatus("Ошибка генерации: " + (err && err.message ? err.message : err), "error");
   }
 });
+
+// Диагностика: если за 1.5с после загрузки страницы plugin.js ещё не успел открыться —
+// это не ошибка сама по себе (открытие происходит асинхронно), просто лог для отладки.
+setTimeout(() => {
+  console.log("[Tokens to SCSS] ui.js ready, waiting for user action");
+}, 1500);
 
 } // end DOM guard
 
