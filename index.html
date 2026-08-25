@@ -3,67 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <title>Tokens to SCSS</title>
-<style>
-  :root { color-scheme: light dark; }
-  * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    margin: 0;
-    padding: 16px;
-    font-size: 13px;
-    color: #1a1a1a;
-    background: #ffffff;
-  }
-  h1 { font-size: 15px; margin: 0 0 4px; }
-  p.hint { color: #666; margin: 0 0 16px; line-height: 1.45; }
-  button {
-    font: inherit;
-    cursor: pointer;
-    border-radius: 8px;
-    border: 1px solid #d0d0d0;
-    background: #212121;
-    padding: 8px 12px;
-    color: #fff;
-  }
-  button.primary {
-    background: #1580ff;
-    color: #fff;
-    border-color: #1580ff;
-    font-weight: 600;
-    width: 100%;
-  }
-  button.primary:hover { background: #4299ff; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  #status { margin: 12px 0; color: #666; min-height: 16px; line-height: 1.4; }
-  #status.error { color: #dc2626; }
-  ul#files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
-  ul#files li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 10px;
-    border: 1px solid #e6e6e6;
-    border-radius: 8px;
-  }
-  ul#files li .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  ul#files li .filename { font-family: ui-monospace, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  ul#files li .count { font-size: 11px; color: #999; }
-  ul#files li button { padding: 4px 10px; font-size: 12px; flex: 0 0 auto; }
-  #zip-btn { margin-top: 12px; display: none; }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Tokens → SCSS</h1>
+  <h1>Tokens to SCSS</h1>
   <p class="hint">
-    Collects one SCSS file for each set of tokens (all Sets — Global/*, Theme/* and any others present in the file).
-    Links between tokens are preserved as SCSS variables, rather than being expanded into resolved values.
+    Собирает по одному SCSS-файлу на каждый набор токенов (все Sets — Global/*, Theme/* и любые
+    другие, какие есть в файле). Ссылки между токенами сохраняются как SCSS-переменные, а не
+    разворачиваются в resolved-значения.
   </p>
-  <button id="generate-btn" class="primary">Collect SCSS-files</button>
-  <div id="status"></div>
-  <ul id="files"></ul>
-  <button id="zip-btn" class="primary">Download .zip</button>
 
-  <script src="ui.js"></script>
+  <button id="generate-btn" type="button" data-appearance="primary">Собрать SCSS-файлы</button>
+
+  <div id="status">
+    <span class="spinner" aria-hidden="true"></span>
+    <span id="status-text"></span>
+  </div>
+
+  <div class="skeleton-list" id="skeleton-list">
+    <div class="skeleton-item"></div>
+    <div class="skeleton-item"></div>
+    <div class="skeleton-item"></div>
+  </div>
+
+  <ul id="files"></ul>
+
+  <button id="zip-btn" type="button" data-appearance="primary">Скачать всё одним .zip</button>
+
+  <script type="module" src="ui.js"></script>
 </body>
 </html>
