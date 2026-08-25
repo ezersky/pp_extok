@@ -1,5 +1,5 @@
 /**
- * S3M Tokens → SCSS — ui.js (iframe context, no direct `penpot` access)
+ * Tokens to SCSS — ui.js (iframe context, no direct `penpot` access)
  *
  * Универсальный генератор: для КАЖДОГО набора токенов (TokenSet), какой бы он ни назывался,
  * собирает файл `_<slug>.scss`. Ссылки токенов друг на друга ("{token.name}") превращаются
@@ -212,7 +212,7 @@ function generateSetFile(set, bySet, promotedPxNumbers) {
 
   const lines = [];
   lines.push("// ============================================================================");
-  lines.push(`// Сгенерировано плагином "S3M Tokens → SCSS" — набор токенов: ${set.name}`);
+  lines.push(`// Сгенерировано плагином "Tokens to SCSS" — набор токенов: ${set.name}`);
   lines.push("// Ссылки между токенами сохранены как SCSS-переменные (наследование не разворачивается");
   lines.push("// в resolved-значения). Файл не редактировать вручную — пересоберите его плагином.");
   lines.push("// ============================================================================");
@@ -232,7 +232,7 @@ function generateSetFile(set, bySet, promotedPxNumbers) {
     }
     const varName = "$" + slug(t.name);
     if (seenVarNames.has(varName)) {
-      console.warn(`[S3M Tokens → SCSS] Коллизия имён: несколько токенов в наборе "${set.name}" дают одинаковую SCSS-переменную ${varName}`);
+      console.warn(`[Tokens to SCSS] Коллизия имён: несколько токенов в наборе "${set.name}" дают одинаковую SCSS-переменную ${varName}`);
     }
     seenVarNames.add(varName);
 
@@ -480,7 +480,7 @@ generateBtn.addEventListener("click", () => {
 
 zipBtn.addEventListener("click", () => {
   const zipBytes = buildZip(generatedFiles.map((f) => ({ name: f.filename, content: f.content })));
-  triggerDownload("s3m-tokens-scss.zip", [zipBytes], "application/zip");
+  triggerDownload("design-tokens-scss.zip", [zipBytes], "application/zip");
 });
 
 window.addEventListener("message", (event) => {
